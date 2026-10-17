@@ -62,6 +62,7 @@ svg{width:100%;height:auto;display:block}
 <label>② 気づいたこと・学んだこと</label><textarea id="r2"></textarea>
 <label>③ 課題・反省点</label><textarea id="r3"></textarea>
 <label>④ 明日に向けて</label><textarea id="r4"></textarea>
+<label>今週の予定</label><textarea id="pw"></textarea>
 <label>今日の予定</label><textarea id="pt"></textarea>
 <label>明日の予定</label><textarea id="pn"></textarea>
 <label>連絡事項・相談内容</label><textarea id="ct"></textarea>
@@ -115,7 +116,7 @@ const opt=a=>a.map(v=>'<option>'+v).join('');
 const times=(s,e,st)=>{const r=[];for(let m=s*60;m<=e*60;m+=st)r.push(String(m/60|0).padStart(2,'0')+':'+String(m%60).padStart(2,'0'));return r};
 const SL=times(9,15.5,30),sid=t=>'s'+t.slice(0,2)+t.slice(3);
 const SCALAR=['am','pm','tt','temp','who','sleep','wake','cond','bpPlace','bpDate','bpTime','bpHi','bpMid','bpLo','pulse'];
-const SEC=[['amNote','朝の気分備考'],['pmNote','帰宅後(日中)の気分備考'],['condNote','体調備考'],['r1','① 今日できたこと'],['r2','② 気づいたこと・学んだこと'],['r3','③ 課題・反省点'],['r4','④ 明日に向けて'],['pt','今日の予定'],['pn','明日の予定'],['ct','連絡事項・相談内容']];
+const SEC=[['amNote','朝の気分備考'],['pmNote','帰宅後(日中)の気分備考'],['condNote','体調備考'],['r1','① 今日できたこと'],['r2','② 気づいたこと・学んだこと'],['r3','③ 課題・反省点'],['r4','④ 明日に向けて'],['pw','今週の予定'],['pt','今日の予定'],['pn','明日の予定'],['ct','連絡事項・相談内容']];
 const ALL=[...SCALAR,...SEC.map(s=>s[0]),...SL.map(sid)];
 const ls=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k)||'';if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){return ''}};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -204,7 +205,7 @@ $('pdf').onclick=()=>{
     row('日付',jp(d))+row('朝の気分',v('am'))+row('朝の気分備考',v('amNote'))+row('帰宅後(日中)の気分',v('pm'))+row('帰宅後(日中)の気分備考',v('pmNote'))+'</table>'+
     '<table><tr><th colspan="2">時間</th></tr>'+SL.map(t=>row(t.replace(':','時')+'分',v(sid(t)))).join('')+'</table>'+
     '<table>'+row('振り返り',['r1','r2','r3','r4'].map(k=>SEC.find(s=>s[0]===k)[1]+'\n'+v(k)).join('\n'))+
-    row('その他(相談内容 連絡事項)','・今日の予定\n'+v('pt')+'\n\n・明日の予定\n'+v('pn')+(v('ct')?'\n'+v('ct'):''))+'</table>';
+    row('その他(相談内容 連絡事項)','・今週の予定\n'+v('pw')+'\n\n・今日の予定\n'+v('pt')+'\n\n・明日の予定\n'+v('pn')+(v('ct')?'\n'+v('ct'):''))+'</table>';
   oldTitle=document.title;document.title=d.replace(/-/g,'')+'_業務日報';
   window.print();
 };
