@@ -124,7 +124,7 @@ const b64=s=>{let b='';new TextEncoder().encode(s).forEach(c=>b+=String.fromChar
 const dec=c=>new TextDecoder().decode(Uint8Array.from(atob(c.replace(/\n/g,'')),x=>x.charCodeAt(0)));
 const say=(el,t,ng)=>{[el,el.id==='msg'?$('msg2'):null].forEach(e=>{if(e){e.textContent=t;e.className='msg'+(ng?' ng':'')}})};
 const youbi=d=>'日月火水木金土'[new Date(d+'T00:00:00').getDay()]+'曜日';
-const jp=d=>{const [y,m,dd]=d.split('-');return y+'年'+(+m)+'月'+(+dd)+'日('+youbi(d)+')'};
+const jp=d=>{const [y,m,dd]=d.split('-');return y+'年'+(+m)+'月'+(+dd)+'日（'+youbi(d)+'）'};
 const todayStr=()=>{const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
 
 $('am').innerHTML=opt(MOOD);$('pm').innerHTML=opt(MOOD);
