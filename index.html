@@ -66,7 +66,7 @@ svg{width:100%;height:auto;display:block}
 <label>今日の予定</label><textarea id="pt"></textarea>
 <label>明日の予定</label><textarea id="pn"></textarea>
 <label>連絡事項・相談内容</label><textarea id="ct"></textarea>
-<button class="pdf" id="pdf">日報をPDFで保存・印刷</button>
+<button id="save2">GitHubに保存</button><button class="pdf" id="pdf">日報をPDFで保存・印刷</button><span class="msg" id="msg2"></span>
 
 <h2>健康管理</h2>
 <label>朝の検温時間</label><input type="time" id="tt">
@@ -122,7 +122,7 @@ const ls=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k)||'';if(v===
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const b64=s=>{let b='';new TextEncoder().encode(s).forEach(c=>b+=String.fromCharCode(c));return btoa(b)};
 const dec=c=>new TextDecoder().decode(Uint8Array.from(atob(c.replace(/\n/g,'')),x=>x.charCodeAt(0)));
-const say=(el,t,ng)=>{el.textContent=t;el.className='msg'+(ng?' ng':'')};
+const say=(el,t,ng)=>{[el,el.id==='msg'?$('msg2'):null].forEach(e=>{if(e){e.textContent=t;e.className='msg'+(ng?' ng':'')}})};
 const youbi=d=>'日月火水木金土'[new Date(d+'T00:00:00').getDay()]+'曜日';
 const jp=d=>{const [y,m,dd]=d.split('-');return y+'年'+(+m)+'月'+(+dd)+'日('+youbi(d)+')'};
 const todayStr=()=>{const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
@@ -184,16 +184,17 @@ document.addEventListener('input',e=>{
 });
 $('date').value=todayStr();$('date').onchange=loadDay;loadDay();
 
-$('save').onclick=async()=>{
+const doSave=async()=>{
   if(!ready())return say($('msg'),'先に「設定」タブで接続設定をしてください',1);
-  $('save').disabled=true;say($('msg'),'保存中...');
+  SV.forEach(b=>b.disabled=true);say($('msg'),'保存中...');
   try{
     const d=$('date').value,p='daily/'+d+'.md',old=await gh(p);
     await gh(p,{method:'PUT',body:JSON.stringify({message:'日報 '+d,content:b64(toMd(d)),...(old?{sha:old.sha}:{})})});
     ls('draft-'+d,null);say($('msg'),'保存しました');
   }catch(e){say($('msg'),'保存失敗: '+e.message+' (下書きはこの端末に残っています)',1)}
-  $('save').disabled=false;
+  SV.forEach(b=>b.disabled=false);
 };
+const SV=[$('save'),$('save2')];SV.forEach(b=>b.onclick=doSave);
 $('saveset').onclick=()=>{ls('repo',$('repo').value.trim());ls('token',$('token').value.trim());say($('smsg'),'保存しました');loadDay()};
 
 /* ---- PDF ---- */
