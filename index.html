@@ -76,6 +76,7 @@ svg{width:100%;height:auto;display:block}
 <label>睡眠備考 (起床時間)</label><select id="wake"></select>
 <label>朝の体調</label><select id="cond"><option value="">-<option>良い<option>少し良い<option>普通<option>少し悪い<option>悪い</select>
 <label>体調備考</label><textarea id="condNote"></textarea>
+<button id="save3">GitHubに保存</button><span class="msg" id="msg3"></span>
 
 <h2>血圧</h2>
 <label>血圧測定場所</label><input id="bpPlace">
@@ -122,7 +123,7 @@ const ls=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k)||'';if(v===
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const b64=s=>{let b='';new TextEncoder().encode(s).forEach(c=>b+=String.fromCharCode(c));return btoa(b)};
 const dec=c=>new TextDecoder().decode(Uint8Array.from(atob(c.replace(/\n/g,'')),x=>x.charCodeAt(0)));
-const say=(el,t,ng)=>{[el,el.id==='msg'?$('msg2'):null].forEach(e=>{if(e){e.textContent=t;e.className='msg'+(ng?' ng':'')}})};
+const say=(el,t,ng)=>{(el.id==='msg'?[el,$('msg2'),$('msg3')]:[el]).forEach(e=>{e.textContent=t;e.className='msg'+(ng?' ng':'')})};
 const youbi=d=>'日月火水木金土'[new Date(d+'T00:00:00').getDay()]+'曜日';
 const jp=d=>{const [y,m,dd]=d.split('-');return y+'年'+(+m)+'月'+(+dd)+'日（'+youbi(d)+'）'};
 const todayStr=()=>{const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
@@ -200,7 +201,7 @@ const doSave=async()=>{
   }catch(e){say($('msg'),'保存失敗: '+e.message+' (下書きはこの端末に残っています)',1)}
   SV.forEach(b=>b.disabled=false);
 };
-const SV=[$('save'),$('save2')];SV.forEach(b=>b.onclick=doSave);
+const SV=[$('save'),$('save2'),$('save3')];SV.forEach(b=>b.onclick=doSave);
 $('saveset').onclick=()=>{ls('repo',$('repo').value.trim());ls('token',$('token').value.trim());say($('smsg'),'保存しました');loadDay()};
 
 /* ---- PDF ---- */
