@@ -11,7 +11,7 @@ main{max-width:680px;margin:0 auto;padding:16px}
 h1{font-size:20px;margin:8px 0 12px}
 h2{font-size:17px;margin:24px 0 0;border-bottom:2px solid var(--accent);padding-bottom:4px}
 .tabs{display:flex;gap:6px;margin-bottom:12px}
-.tabs button{flex:1;padding:10px;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:8px;font-size:15px;cursor:pointer;margin:0}
+.tabs button{flex:1;padding:7px 2px;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:8px;font-size:13px;cursor:pointer;margin:0}
 .tabs button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
 label{display:block;font-size:13px;color:var(--sub);margin:12px 0 4px}
 input,textarea,select{width:100%;padding:9px;border:1px solid var(--line);border-radius:8px;font:inherit;background:var(--card);color:var(--text)}
@@ -19,7 +19,7 @@ textarea{min-height:60px;resize:none;overflow:hidden}
 .slot{display:grid;grid-template-columns:auto 1fr;gap:8px;margin-top:6px}
 .slot span{font-size:13px;color:var(--sub);padding-top:9px;white-space:nowrap}
 .slot textarea{min-height:40px}
-button{margin:14px 8px 0 0;padding:10px 16px;border:0;border-radius:8px;background:var(--accent);color:#fff;font-size:15px;cursor:pointer}
+button{margin:12px 6px 0 0;padding:7px 12px;border:0;border-radius:8px;background:var(--accent);color:#fff;font-size:13px;cursor:pointer}
 button.pdf{background:#dc2626}
 button:disabled{opacity:.5}
 .msg{font-size:13px;color:var(--ok)}.msg.ng{color:var(--ng)}
@@ -47,12 +47,13 @@ svg{width:100%;height:auto;display:block}
 <main>
 <h1>日報＆健康管理</h1>
 <div class="tabs">
-  <button data-t="in" class="on">入力</button><button data-t="list">一覧</button><button data-t="chart">グラフ</button><button data-t="set">設定</button>
+  <button data-t="nippo" class="on">日報</button><button data-t="health">健康管理</button><button data-t="list">一覧</button><button data-t="chart">グラフ</button><button data-t="set">設定</button>
 </div>
 
 <section id="in">
-<h2 style="margin-top:0">日報</h2>
-<label>日付</label><div style="position:relative"><input id="dateShow" readonly><input type="date" id="date" style="position:absolute;left:0;top:0;width:100%;height:100%;opacity:0;cursor:pointer"></div>
+<label style="margin-top:0">日付</label><div style="position:relative"><input id="dateShow" readonly><input type="date" id="date" style="position:absolute;left:0;top:0;width:100%;height:100%;opacity:0;cursor:pointer"></div>
+<div id="pgN">
+<h2>日報</h2>
 <label>朝の気分</label><select id="am"></select>
 <label>朝の気分備考</label><textarea id="amNote"></textarea>
 <label>帰宅後(日中)の気分</label><select id="pm"></select>
@@ -68,7 +69,9 @@ svg{width:100%;height:auto;display:block}
 <label>連絡事項・相談内容</label><textarea id="ct"></textarea>
 <button id="save2">GitHubに保存</button><button class="pdf" id="pdf">日報をPDFで保存・印刷</button><span class="msg" id="msg2"></span>
 
-<h2>健康管理</h2>
+</div>
+<div id="pgH" hidden>
+<h2 style="margin-top:12px">健康管理</h2>
 <label>朝の検温時間</label><input type="time" id="tt">
 <label>体温</label><select id="temp"></select>
 <label>体温備考 (世話人)</label><select id="who"><option value="">-<option>コンドウ<option>スギウラ<option>アダチ<option>ヤマダ</select>
@@ -89,6 +92,7 @@ svg{width:100%;height:auto;display:block}
 
 <button id="save">GitHubに保存</button><span class="msg" id="msg"></span>
 <p class="note">入力内容はこの端末に自動で下書き保存されます。「GitHubに保存」を押すと、全端末で共有されます。日付を変えるとその日の記録を読み込みます。</p>
+</div>
 </section>
 
 <section id="month" hidden><label>表示する月</label><input type="month" id="mon"></section>
@@ -244,7 +248,7 @@ function renderList(d){
     return `<div class="row"><b>${k}(${youbi(k)[0]})</b><a data-d="${k}">開く</a><div>${t.map(x=>`<span class="tag">${esc(x)}</span>`).join('')}</div>${blk}</div>`;
   }).join(''):'<p class="note">この月の記録はありません。</p>';
 }
-$('rows').onclick=e=>{const d=e.target.dataset.d;if(d){$('date').value=d;loadDay();tab('in')}};
+$('rows').onclick=e=>{const d=e.target.dataset.d;if(d){$('date').value=d;loadDay();tab('nippo')}};
 
 function line(el,d,series,colors){
   const ks=Object.keys(d).filter(k=>k[0]!=='_').sort();
@@ -269,7 +273,7 @@ function renderCharts(d){
   line($('c-pulse'),d,['pulse'],['#7c3aed']);
 }
 
-let cur='in';
+let cur='nippo';
 async function show(){
   if(cur!=='list'&&cur!=='chart')return;
   const d=await month();
@@ -278,9 +282,11 @@ async function show(){
 function tab(t){
   cur=t;
   document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x.dataset.t===t));
-  ['in','list','chart','set'].forEach(id=>$(id).hidden=id!==t);
+  const inp=t==='nippo'||t==='health';
+  $('pgN').hidden=t!=='nippo';$('pgH').hidden=t!=='health';
+  ['in','list','chart','set'].forEach(id=>$(id).hidden=id!==(inp?'in':t));
   $('month').hidden=!(t==='list'||t==='chart');
-  if(t==='in')growAll();
+  if(inp)growAll();
   show();
 }
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>tab(b.dataset.t));
