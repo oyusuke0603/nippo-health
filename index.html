@@ -15,7 +15,7 @@ h2{font-size:17px;margin:24px 0 0;border-bottom:2px solid var(--accent);padding-
 .tabs button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
 label{display:block;font-size:13px;color:var(--sub);margin:12px 0 4px}
 input,textarea,select{width:100%;padding:9px;border:1px solid var(--line);border-radius:8px;font:inherit;background:var(--card);color:var(--text)}
-textarea{min-height:60px;resize:vertical}
+textarea{min-height:60px;resize:none;overflow:hidden}
 .slot{display:grid;grid-template-columns:auto 1fr;gap:8px;margin-top:6px}
 .slot span{font-size:13px;color:var(--sub);padding-top:9px;white-space:nowrap}
 .slot textarea{min-height:40px}
@@ -166,7 +166,10 @@ async function gh(path,opt={}){
 const ready=()=>ls('token')&&ls('repo');
 
 /* ---- 入力画面 ---- */
-function setForm(r){ALL.forEach(k=>$(k).value=r[k]??'')}
+const grow=t=>{t.style.height='auto';t.style.height=t.scrollHeight+2+'px'};
+const growAll=()=>document.querySelectorAll('#in textarea').forEach(grow);
+window.onresize=growAll;
+function setForm(r){ALL.forEach(k=>$(k).value=r[k]??'');growAll()}
 const form=()=>{const r={};ALL.forEach(k=>r[k]=$(k).value);return r};
 async function loadDay(){
   const d=$('date').value;
@@ -180,6 +183,7 @@ async function loadDay(){
   catch(e){say($('msg'),'読み込み失敗: '+e.message,1)}
 }
 document.addEventListener('input',e=>{
+  if(e.target.tagName==='TEXTAREA')grow(e.target);
   if(e.target.closest('#in')&&e.target.id!=='date'&&e.target.id)ls('draft-'+$('date').value,JSON.stringify(form()));
 });
 $('date').value=todayStr();$('date').onchange=loadDay;loadDay();
@@ -273,6 +277,7 @@ function tab(t){
   document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x.dataset.t===t));
   ['in','list','chart','set'].forEach(id=>$(id).hidden=id!==t);
   $('month').hidden=!(t==='list'||t==='chart');
+  if(t==='in')growAll();
   show();
 }
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>tab(b.dataset.t));
