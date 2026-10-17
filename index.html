@@ -107,6 +107,7 @@ svg{width:100%;height:auto;display:block}
   <div class="card">
     <label>データ用リポジトリ (owner/repo)</label><input id="repo" placeholder="oyusuke0603/nippo-health-data">
     <label>アクセストークン (fine-grained PAT)</label><input id="token" type="password" autocomplete="off">
+    <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="shared" style="width:auto">共用・会社PC用(ブラウザを閉じるとトークンを消す)</label>
     <button id="saveset">設定を保存</button><button id="link">他の端末用リンクをコピー</button><span class="msg" id="smsg"></span>
     <p class="note">トークンはこの端末のブラウザ内にだけ保存されます。データ用リポジトリのContents読み書き権限のみを付けてください。会社PCなど共用の端末では、使い終わったらトークンを空にして保存してください。「他の端末用リンク」にはトークンが含まれます。自分宛てに送って、開いたらすぐ削除してください。</p>
   </div>
@@ -123,7 +124,8 @@ const SL=times(9,15.5,30),sid=t=>'s'+t.slice(0,2)+t.slice(3);
 const SCALAR=['am','pm','tt','temp','who','sleep','wake','cond','bpPlace','bpDate','bpTime','bpHi','bpMid','bpLo','pulse'];
 const SEC=[['amNote','朝の気分備考'],['pmNote','帰宅後(日中)の気分備考'],['condNote','体調備考'],['r1','① 今日できたこと'],['r2','② 気づいたこと・学んだこと'],['r3','③ 課題・反省点'],['r4','④ 明日に向けて'],['pw','今週の予定'],['pt','今日の予定'],['pn','明日の予定'],['ct','連絡事項・相談内容']];
 const ALL=[...SCALAR,...SEC.map(s=>s[0]),...SL.map(sid)];
-const ls=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k)||'';if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){return ''}};
+const ls=(k,v)=>{try{const S=k==='token'&&localStorage.getItem('shared')==='1'?sessionStorage:localStorage;
+  if(v===undefined)return S.getItem(k)||'';if(v===null)S.removeItem(k);else S.setItem(k,v)}catch(e){return ''}};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const b64=s=>{let b='';new TextEncoder().encode(s).forEach(c=>b+=String.fromCharCode(c));return btoa(b)};
 const dec=c=>new TextDecoder().decode(Uint8Array.from(atob(c.replace(/\n/g,'')),x=>x.charCodeAt(0)));
@@ -140,6 +142,7 @@ $('temp').innerHTML='<option value="">-'+opt(Array.from({length:31},(_,i)=>(35.5
   if(p.get('t')){ls('repo',p.get('r')||'oyusuke0603/nippo-health-data');ls('token',p.get('t'));history.replaceState(null,'',location.pathname)}
   if(!ls('repo'))ls('repo','oyusuke0603/nippo-health-data')})();
 $('repo').value=ls('repo');$('token').value=ls('token');
+try{$('shared').checked=localStorage.getItem('shared')==='1'}catch(e){}
 
 /* ---- Markdown 変換 ---- */
 const encT=s=>s.replace(/^(#)/gm,'\\$1'),decT=s=>s.replace(/^\\(#)/gm,'$1');
@@ -209,7 +212,10 @@ const doSave=async()=>{
   SV.forEach(b=>b.disabled=false);
 };
 const SV=[$('save'),$('save2'),$('save3')];SV.forEach(b=>b.onclick=doSave);
-$('saveset').onclick=()=>{ls('repo',$('repo').value.trim());ls('token',$('token').value.trim());say($('smsg'),'保存しました');loadDay()};
+$('saveset').onclick=()=>{
+  try{localStorage.removeItem('token');sessionStorage.removeItem('token');
+    if($('shared').checked)localStorage.setItem('shared','1');else localStorage.removeItem('shared')}catch(e){}
+  ls('repo',$('repo').value.trim());ls('token',$('token').value.trim());say($('smsg'),'保存しました');loadDay()};
 $('link').onclick=async()=>{
   if(!ready())return say($('smsg'),'先に設定を保存してください',1);
   const u=location.origin+location.pathname+'#r='+encodeURIComponent(ls('repo'))+'&t='+encodeURIComponent(ls('token'));
