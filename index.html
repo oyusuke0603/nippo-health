@@ -108,7 +108,7 @@ svg{width:100%;height:auto;display:block}
     <label>データ用リポジトリ (owner/repo)</label><input id="repo" placeholder="oyusuke0603/nippo-health-data">
     <label>アクセストークン (fine-grained PAT)</label><input id="token" type="password" autocomplete="off">
     <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="shared" style="width:auto">共用・会社PC用(ブラウザを閉じるとトークンを消す)</label>
-    <button id="saveset">設定を保存</button><button id="link">他の端末用リンクをコピー</button><span class="msg" id="smsg"></span>
+    <button id="saveset">設定を保存</button><button id="link">他の端末用リンクをコピー</button><button id="link2">会社PC用リンクをコピー</button><span class="msg" id="smsg"></span>
     <p class="note">トークンはこの端末のブラウザ内にだけ保存されます。データ用リポジトリのContents読み書き権限のみを付けてください。会社PCなど共用の端末では、使い終わったらトークンを空にして保存してください。「他の端末用リンク」にはトークンが含まれます。自分宛てに送って、開いたらすぐ削除してください。</p>
   </div>
 </section>
@@ -139,7 +139,8 @@ $('slots').innerHTML=SL.map(t=>`<div class="slot"><span>${t.replace(':','時')}�
 $('wake').innerHTML='<option value="">-'+opt(times(4,10,15));
 $('temp').innerHTML='<option value="">-'+opt(Array.from({length:31},(_,i)=>(35.5+i/10).toFixed(1)));
 (()=>{const p=new URLSearchParams(location.hash.slice(1));
-  if(p.get('t')){ls('repo',p.get('r')||'oyusuke0603/nippo-health-data');ls('token',p.get('t'));history.replaceState(null,'',location.pathname)}
+  if(p.get('t')){if(p.get('s')==='1')try{localStorage.setItem('shared','1')}catch(e){}
+    ls('repo',p.get('r')||'oyusuke0603/nippo-health-data');ls('token',p.get('t'));history.replaceState(null,'',location.pathname)}
   if(!ls('repo'))ls('repo','oyusuke0603/nippo-health-data')})();
 $('repo').value=ls('repo');$('token').value=ls('token');
 try{$('shared').checked=localStorage.getItem('shared')==='1'}catch(e){}
@@ -216,11 +217,12 @@ $('saveset').onclick=()=>{
   try{localStorage.removeItem('token');sessionStorage.removeItem('token');
     if($('shared').checked)localStorage.setItem('shared','1');else localStorage.removeItem('shared')}catch(e){}
   ls('repo',$('repo').value.trim());ls('token',$('token').value.trim());say($('smsg'),'保存しました');loadDay()};
-$('link').onclick=async()=>{
+const mkLink=s=>async()=>{
   if(!ready())return say($('smsg'),'先に設定を保存してください',1);
-  const u=location.origin+location.pathname+'#r='+encodeURIComponent(ls('repo'))+'&t='+encodeURIComponent(ls('token'));
+  const u=location.origin+location.pathname+'#r='+encodeURIComponent(ls('repo'))+'&t='+encodeURIComponent(ls('token'))+(s?'&s=1':'');
   try{await navigator.clipboard.writeText(u);say($('smsg'),'コピーしました。他の端末でこのリンクを開くと設定されます')}catch(e){prompt('このリンクをコピーしてください',u)}
 };
+$('link').onclick=mkLink(0);$('link2').onclick=mkLink(1);
 
 /* ---- PDF ---- */
 const row=(a,b)=>`<tr><td>${a}</td><td>${esc(b)}</td></tr>`;
