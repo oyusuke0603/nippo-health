@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>日報＆健康管理</title>
+<style>
+:root{--bg:#f5f7fa;--card:#fff;--text:#1f2937;--sub:#6b7280;--accent:#2563eb;--line:#e5e7eb;--ok:#16a34a;--ng:#dc2626}
+@media (prefers-color-scheme:dark){:root{--bg:#111827;--card:#1f2937;--text:#f3f4f6;--sub:#9ca3af;--accent:#60a5fa;--line:#374151}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,"Hiragino Sans","Yu Gothic",sans-serif;line-height:1.6}
+main{max-width:680px;margin:0 auto;padding:16px}
+h1{font-size:20px;margin:8px 0 12px}
+h2{font-size:17px;margin:24px 0 0;border-bottom:2px solid var(--accent);padding-bottom:4px}
+.tabs{display:flex;gap:6px;margin-bottom:12px}
+.tabs button{flex:1;padding:10px;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:8px;font-size:15px;cursor:pointer;margin:0}
+.tabs button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+label{display:block;font-size:13px;color:var(--sub);margin:12px 0 4px}
+input,textarea,select{width:100%;padding:9px;border:1px solid var(--line);border-radius:8px;font:inherit;background:var(--card);color:var(--text)}
+textarea{min-height:60px;resize:vertical}
+.slot{display:grid;grid-template-columns:auto 1fr;gap:8px;margin-top:6px}
+.slot span{font-size:13px;color:var(--sub);padding-top:9px;white-space:nowrap}
+.slot textarea{min-height:40px}
+button{margin:14px 8px 0 0;padding:10px 16px;border:0;border-radius:8px;background:var(--accent);color:#fff;font-size:15px;cursor:pointer}
+button.pdf{background:#dc2626}
+button:disabled{opacity:.5}
+.msg{font-size:13px;color:var(--ok)}.msg.ng{color:var(--ng)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-bottom:12px}
+.row{border-top:1px solid var(--line);padding:10px 0;font-size:14px}.row:first-child{border-top:0}
+.tag{display:inline-block;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:0 6px;margin-right:4px;font-size:12px;color:var(--sub)}
+.row pre{margin:4px 0 0;white-space:pre-wrap;font:inherit;color:var(--sub)}
+.row a{font-size:12px;margin-left:6px;color:var(--accent);cursor:pointer}
+svg{width:100%;height:auto;display:block}
+.note{font-size:12px;color:var(--sub)}
+[hidden]{display:none!important}
+#print{display:none}
+@media print{
+  body{background:#fff;color:#000;font-size:11px}
+  main{display:none}
+  #print{display:block}
+  #print table{width:100%;border-collapse:separate;border-spacing:0;margin-bottom:10px;border:2px solid #000}
+  #print tr:last-child td,#print tr:last-child th{border-bottom:0!important}
+  #print td:last-child,#print th:last-child{border-right:0!important}
+  #print td,#print th{border-right:1px solid #000;border-bottom:1px solid #000;padding:3px 6px;height:1.6em;vertical-align:top;white-space:pre-wrap;text-align:left}
+  #print td:first-child{width:26%}
+  @page{size:A4;margin:12mm}
+}
+</style></head><body>
+<main>
+<h1>日報＆健康管理</h1>
+<div class="tabs">
+  <button data-t="in" class="on">入力</button><button data-t="list">一覧</button><button data-t="chart">グラフ</button><button data-t="set">設定</button>
+</div>
+
+<section id="in">
+<h2 style="margin-top:0">日報</h2>
+<label>日付</label><input type="date" id="date">
+<label>朝の気分</label><select id="am"></select>
+<label>朝の気分備考</label><textarea id="amNote"></textarea>
+<label>帰宅後(日中)の気分</label><select id="pm"></select>
+<label>帰宅後(日中)の気分備考</label><textarea id="pmNote"></textarea>
+<label>時間</label><div id="slots"></div>
+<label>① 今日できたこと</label><textarea id="r1"></textarea>
+<label>② 気づいたこと・学んだこと</label><textarea id="r2"></textarea>
+<label>③ 課題・反省点</label><textarea id="r3"></textarea>
+<label>④ 明日に向けて</label><textarea id="r4"></textarea>
+<label>今日の予定</label><textarea id="pt"></textarea>
+<label>明日の予定</label><textarea id="pn"></textarea>
+<label>連絡事項・相談内容</label><textarea id="ct"></textarea>
+<button class="pdf" id="pdf">日報をPDFで保存・印刷</button>
+
+<h2>健康管理</h2>
+<label>朝の検温時間</label><input type="time" id="tt">
+<label>体温</label><select id="temp"></select>
+<label>体温備考 (世話人)</label><select id="who"><option value="">-<option>コンドウ<option>スギウラ<option>アダチ<option>ヤマダ</select>
+<label>睡眠</label><select id="sleep"><option value="">-<option>よく眠れた<option>普通<option>浅かった<option>あまり眠れなかった<option>眠れなかった</select>
+<label>睡眠備考 (起床時間)</label><select id="wake"></select>
+<label>朝の体調</label><select id="cond"><option value="">-<option>良い<option>少し良い<option>普通<option>少し悪い<option>悪い</select>
+<label>体調備考</label><textarea id="condNote"></textarea>
+
+<h2>血圧</h2>
+<label>血圧測定場所</label><input id="bpPlace">
+<label>血圧測定日</label><input type="date" id="bpDate">
+<label>血圧測定時間</label><input type="time" id="bpTime">
+<label>最高血圧 (mmHg)</label><input type="number" id="bpHi">
+<label>平均血圧 (mmHg)</label><input type="number" id="bpMid">
+<label>最低血圧 (mmHg)</label><input type="number" id="bpLo">
+<label>脈拍数 (拍/分)</label><input type="number" id="pulse">
+
+<button id="save">GitHubに保存</button><span class="msg" id="msg"></span>
+<p class="note">入力内容はこの端末に自動で下書き保存されます。「GitHubに保存」を押すと、全端末で共有されます。日付を変えるとその日の記録を読み込みます。</p>
+</section>
+
+<section id="month" hidden><label>表示する月</label><input type="month" id="mon"></section>
+<section id="list" hidden><div class="card" id="rows"></div></section>
+<section id="chart" hidden>
+  <div class="card"><b>体温 (℃)</b><div id="c-temp"></div></div>
+  <div class="card"><b>血圧 最高/最低 (mmHg)</b><div id="c-bp"></div></div>
+  <div class="card"><b>脈拍数 (拍/分)</b><div id="c-pulse"></div></div>
+</section>
+
+<section id="set" hidden>
+  <div class="card">
+    <label>データ用リポジトリ (owner/repo)</label><input id="repo" placeholder="oyusuke0603/nippo-health-data">
+    <label>アクセストークン (fine-grained PAT)</label><input id="token" type="password" autocomplete="off">
+    <button id="saveset">設定を保存</button><span class="msg" id="smsg"></span>
+    <p class="note">トークンはこの端末のブラウザ内にだけ保存されます。データ用リポジトリのContents読み書き権限のみを付けてください。会社PCなど共用の端末では、使い終わったらトークンを空にして保存してください。</p>
+  </div>
+</section>
+</main>
+<div id="print"></div>
+
+<script>
+const $=i=>document.getElementById(i);
+const MOOD=['','良い','少し良い','普通','少し悪い','良くない'];
+const opt=a=>a.map(v=>'<option>'+v).join('');
+const times=(s,e,st)=>{const r=[];for(let m=s*60;m<=e*60;m+=st)r.push(String(m/60|0).padStart(2,'0')+':'+String(m%60).padStart(2,'0'));return r};
+const SL=times(9,15.5,30),sid=t=>'s'+t.slice(0,2)+t.slice(3);
+const SCALAR=['am','pm','tt','temp','who','sleep','wake','cond','bpPlace','bpDate','bpTime','bpHi','bpMid','bpLo','pulse'];
+const SEC=[['amNote','朝の気分備考'],['pmNote','帰宅後(日中)の気分備考'],['condNote','体調備考'],['r1','① 今日できたこと'],['r2','② 気づいたこと・学んだこと'],['r3','③ 課題・反省点'],['r4','④ 明日に向けて'],['pt','今日の予定'],['pn','明日の予定'],['ct','連絡事項・相談内容']];
+const ALL=[...SCALAR,...SEC.map(s=>s[0]),...SL.map(sid)];
+const ls=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k)||'';if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){return ''}};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const b64=s=>{let b='';new TextEncoder().encode(s).forEach(c=>b+=String.fromCharCode(c));return btoa(b)};
+const dec=c=>new TextDecoder().decode(Uint8Array.from(atob(c.replace(/\n/g,'')),x=>x.charCodeAt(0)));
+const say=(el,t,ng)=>{el.textContent=t;el.className='msg'+(ng?' ng':'')};
+const youbi=d=>'日月火水木金土'[new Date(d+'T00:00:00').getDay()]+'曜日';
+const jp=d=>{const [y,m,dd]=d.split('-');return y+'年'+(+m)+'月'+(+dd)+'日('+youbi(d)+')'};
+const todayStr=()=>{const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
+
+$('am').innerHTML=opt(MOOD);$('pm').innerHTML=opt(MOOD);
+$('slots').innerHTML=SL.map(t=>`<div class="slot"><span>${t.replace(':','時')}分</span><textarea id="${sid(t)}"></textarea></div>`).join('');
+$('wake').innerHTML='<option value="">-'+opt(times(4,10,15));
+$('temp').innerHTML='<option value="">-'+opt(Array.from({length:31},(_,i)=>(35.5+i/10).toFixed(1)));
+$('repo').value=ls('repo');$('token').value=ls('token');
+
+/* ---- Markdown 変換 ---- */
+const encT=s=>s.replace(/^(#)/gm,'\\$1'),decT=s=>s.replace(/^\\(#)/gm,'$1');
+function toMd(d){
+  let m='---\ndate: '+d+'\n';
+  SCALAR.forEach(k=>{if($(k).value!=='')m+=k+': '+$(k).value.replace(/\n/g,' ')+'\n'});
+  m+='---\n\n# '+d+' 日報・健康記録\n';
+  const sl=SL.filter(t=>$(sid(t)).value.trim());
+  if(sl.length)m+='\n## 時間\n'+sl.map(t=>'\n### '+t+'\n\n'+encT($(sid(t)).value.trim())+'\n').join('');
+  SEC.forEach(([k,n])=>{if($(k).value.trim())m+='\n## '+n+'\n\n'+encT($(k).value.trim())+'\n'});
+  return m;
+}
+function fromMd(t){
+  const r={},fm=t.match(/^---\n([\s\S]*?)\n---/);
+  if(fm)fm[1].split('\n').forEach(l=>{const i=l.indexOf(':');if(i>0)r[l.slice(0,i).trim()]=l.slice(i+1).trim()});
+  t.split(/\n## /).slice(1).forEach(b=>{
+    const i=b.indexOf('\n'),name=b.slice(0,i).trim(),body=b.slice(i+1);
+    if(name==='時間')body.split(/\n### /).slice(1).forEach(x=>{const j=x.indexOf('\n');r[sid(x.slice(0,j).trim())]=decT(x.slice(j+1).trim())});
+    else{const s=SEC.find(s=>s[1]===name);if(s)r[s[0]]=decT(body.trim())}
+  });
+  return r;
+}
+
+/* ---- GitHub ---- */
+async function gh(path,opt={}){
+  const r=await fetch('https://api.github.com/repos/'+ls('repo')+'/contents/'+path,{...opt,cache:'no-store',
+    headers:{Authorization:'Bearer '+ls('token'),Accept:'application/vnd.github+json','Content-Type':'application/json'}});
+  if(r.status===404)return null;
+  if(!r.ok)throw new Error(r.status+' '+(await r.text()).slice(0,100));
+  return r.json();
+}
+const ready=()=>ls('token')&&ls('repo');
+
+/* ---- 入力画面 ---- */
+function setForm(r){ALL.forEach(k=>$(k).value=r[k]??'')}
+const form=()=>{const r={};ALL.forEach(k=>r[k]=$(k).value);return r};
+async function loadDay(){
+  const d=$('date').value;
+  setForm({bpDate:d});
+  const draft=ls('draft-'+d);
+  if(draft){try{setForm(JSON.parse(draft));say($('msg'),'未保存の下書きを復元しました');return}catch(e){}}
+  if(!ready())return;
+  say($('msg'),'読み込み中...');
+  try{const f=await gh('daily/'+d+'.md');if($('date').value!==d)return;
+    if(f)setForm({bpDate:d,...fromMd(dec(f.content))});say($('msg'),'')}
+  catch(e){say($('msg'),'読み込み失敗: '+e.message,1)}
+}
+document.addEventListener('input',e=>{
+  if(e.target.closest('#in')&&e.target.id!=='date'&&e.target.id)ls('draft-'+$('date').value,JSON.stringify(form()));
+});
+$('date').value=todayStr();$('date').onchange=loadDay;loadDay();
+
+$('save').onclick=async()=>{
+  if(!ready())return say($('msg'),'先に「設定」タブで接続設定をしてください',1);
+  $('save').disabled=true;say($('msg'),'保存中...');
+  try{
+    const d=$('date').value,p='daily/'+d+'.md',old=await gh(p);
+    await gh(p,{method:'PUT',body:JSON.stringify({message:'日報 '+d,content:b64(toMd(d)),...(old?{sha:old.sha}:{})})});
+    ls('draft-'+d,null);say($('msg'),'保存しました');
+  }catch(e){say($('msg'),'保存失敗: '+e.message+' (下書きはこの端末に残っています)',1)}
+  $('save').disabled=false;
+};
+$('saveset').onclick=()=>{ls('repo',$('repo').value.trim());ls('token',$('token').value.trim());say($('smsg'),'保存しました');loadDay()};
+
+/* ---- PDF ---- */
+const row=(a,b)=>`<tr><td>${a}</td><td>${esc(b)}</td></tr>`;
+let oldTitle=document.title;
+$('pdf').onclick=()=>{
+  const d=$('date').value,v=k=>$(k).value;
+  $('print').innerHTML='<table><tr><th colspan="2" style="text-align:center">業務日報</th></tr>'+
+    row('日付',jp(d))+row('朝の気分',v('am'))+row('朝の気分備考',v('amNote'))+row('帰宅後(日中)の気分',v('pm'))+row('帰宅後(日中)の気分備考',v('pmNote'))+'</table>'+
+    '<table><tr><th colspan="2">時間</th></tr>'+SL.map(t=>row(t.replace(':','時')+'分',v(sid(t)))).join('')+'</table>'+
+    '<table>'+row('振り返り',['r1','r2','r3','r4'].map(k=>SEC.find(s=>s[0]===k)[1]+'\n'+v(k)).join('\n'))+
+    row('その他(相談内容 連絡事項)','・今日の予定\n'+v('pt')+'\n\n・明日の予定\n'+v('pn')+(v('ct')?'\n'+v('ct'):''))+'</table>';
+  oldTitle=document.title;document.title=d.replace(/-/g,'')+'_業務日報';
+  window.print();
+};
+window.onafterprint=()=>{document.title=oldTitle};
+
+/* ---- 一覧・グラフ (月単位) ---- */
+$('mon').value=todayStr().slice(0,7);
+async function month(){
+  const m=$('mon').value;
+  if(!ready())return {_err:'設定が未完了です'};
+  try{
+    const l=await gh('daily');if(!l)return {};
+    const out={};
+    await Promise.all(l.filter(f=>f.name.startsWith(m)&&f.name.endsWith('.md')).map(async f=>{
+      const x=await gh('daily/'+f.name);if(x)out[f.name.slice(0,-3)]=fromMd(dec(x.content))}));
+    return out;
+  }catch(e){return {_err:e.message}}
+}
+function renderList(d){
+  if(d._err)return $('rows').innerHTML='<p class="note">取得失敗: '+esc(d._err)+'</p>';
+  const ks=Object.keys(d).sort().reverse();
+  $('rows').innerHTML=ks.length?ks.map(k=>{
+    const r=d[k],t=[];
+    if(r.am)t.push('朝:'+r.am);if(r.pm)t.push('日中:'+r.pm);if(r.cond)t.push('体調:'+r.cond);
+    if(r.temp)t.push(r.temp+'℃');if(r.sleep)t.push(r.sleep);
+    if(r.bpHi&&r.bpLo)t.push(r.bpHi+'/'+r.bpLo+'mmHg');if(r.pulse)t.push(r.pulse+'拍');
+    const blk=SEC.filter(([f])=>r[f]).map(([f,n])=>`<pre><span class="tag">${n}</span>${esc(r[f])}</pre>`).join('');
+    return `<div class="row"><b>${k}(${youbi(k)[0]})</b><a data-d="${k}">開く</a><div>${t.map(x=>`<span class="tag">${esc(x)}</span>`).join('')}</div>${blk}</div>`;
+  }).join(''):'<p class="note">この月の記録はありません。</p>';
+}
+$('rows').onclick=e=>{const d=e.target.dataset.d;if(d){$('date').value=d;loadDay();tab('in')}};
+
+function line(el,d,series,colors){
+  const ks=Object.keys(d).filter(k=>k[0]!=='_').sort();
+  const pts=series.map(s=>ks.map(k=>d[k][s]?+d[k][s]:null)),all=pts.flat().filter(v=>v!==null);
+  if(!all.length){el.innerHTML='<p class="note">データがありません。</p>';return}
+  let lo=Math.min(...all),hi=Math.max(...all);if(lo===hi){lo-=1;hi+=1}
+  const pad=(hi-lo)*.1;lo-=pad;hi+=pad;
+  const W=600,H=220,L=40,R=10,T=10,B=24,n=ks.length;
+  const x=i=>L+(n<2?(W-L-R)/2:i*(W-L-R)/(n-1)),y=v=>T+(hi-v)/(hi-lo)*(H-T-B);
+  let s=`<svg viewBox="0 0 ${W} ${H}">`;
+  for(let i=0;i<=4;i++){const v=lo+(hi-lo)*i/4;s+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="currentColor" opacity=".12"/><text x="${L-4}" y="${y(v)+4}" font-size="11" text-anchor="end" fill="currentColor" opacity=".6">${v.toFixed(1)}</text>`}
+  [0,n-1].forEach(i=>{s+=`<text x="${x(i)}" y="${H-6}" font-size="11" text-anchor="${i?'end':'start'}" fill="currentColor" opacity=".6">${ks[i].slice(5)}</text>`});
+  pts.forEach((p,j)=>{let path='',pen=false;
+    p.forEach((v,i)=>{if(v===null){pen=false;return}path+=(pen?'L':'M')+x(i)+' '+y(v);pen=true});
+    s+=`<path d="${path}" fill="none" stroke="${colors[j]}" stroke-width="2"/>`;
+    p.forEach((v,i)=>{if(v!==null)s+=`<circle cx="${x(i)}" cy="${y(v)}" r="3" fill="${colors[j]}"><title>${ks[i]}: ${v}</title></circle>`})});
+  el.innerHTML=s+'</svg>';
+}
+function renderCharts(d){
+  line($('c-temp'),d,['temp'],['#dc2626']);
+  line($('c-bp'),d,['bpHi','bpLo'],['#ea580c','#0d9488']);
+  line($('c-pulse'),d,['pulse'],['#7c3aed']);
+}
+
+let cur='in';
+async function show(){
+  if(cur!=='list'&&cur!=='chart')return;
+  const d=await month();
+  if(cur==='list')renderList(d);else renderCharts(d);
+}
+function tab(t){
+  cur=t;
+  document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x.dataset.t===t));
+  ['in','list','chart','set'].forEach(id=>$(id).hidden=id!==t);
+  $('month').hidden=!(t==='list'||t==='chart');
+  show();
+}
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>tab(b.dataset.t));
+$('mon').onchange=show;
+</script></body></html>
