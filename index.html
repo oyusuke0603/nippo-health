@@ -52,7 +52,7 @@ svg{width:100%;height:auto;display:block}
 
 <section id="in">
 <h2 style="margin-top:0">日報</h2>
-<label>日付</label><input type="date" id="date">
+<label>日付</label><div style="position:relative"><input id="dateShow" readonly><input type="date" id="date" style="position:absolute;left:0;top:0;width:100%;height:100%;opacity:0;cursor:pointer"></div>
 <label>朝の気分</label><select id="am"></select>
 <label>朝の気分備考</label><textarea id="amNote"></textarea>
 <label>帰宅後(日中)の気分</label><select id="pm"></select>
@@ -171,8 +171,10 @@ const growAll=()=>document.querySelectorAll('#in textarea').forEach(grow);
 window.onresize=growAll;
 function setForm(r){ALL.forEach(k=>$(k).value=r[k]??'');growAll()}
 const form=()=>{const r={};ALL.forEach(k=>r[k]=$(k).value);return r};
+const showDate=()=>{$('dateShow').value=$('date').value?jp($('date').value):''};
+$('date').onclick=()=>{try{$('date').showPicker()}catch(e){}};
 async function loadDay(){
-  const d=$('date').value;
+  const d=$('date').value;showDate();
   setForm({bpDate:d});
   const draft=ls('draft-'+d);
   if(draft){try{setForm(JSON.parse(draft));say($('msg'),'未保存の下書きを復元しました');return}catch(e){}}
